@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QRIS Dinamis Otomatis - PEACE TASTY CORNDOG</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Pustaka QR Generator -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- Pustaka jsQR untuk membaca QR dari tag img -->
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased">
+
+  <header class="border-b bg-white sticky top-0 z-10 shadow-sm">
+    <div class="max-w-xl mx-auto px-4 py-3.5 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+          Q
+        </div>
+        <span class="font-bold text-slate-800 tracking-tight">QRIS Dinamis Otomatis</span>
+      </div>
+      <span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-100">
+        PEACE TASTY CORNDOG
+      </span>
+    </div>
+  </header>
+
+  <main class="flex-1 w-full max-w-xl mx-auto px-4 py-6 space-y-5">
+
+    <!-- Merchant Info Card -->
+    <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex items-center justify-between">
+      <div>
+        <h2 class="font-bold text-slate-800">PEACE TASTY CORNDOG</h2>
+        <p class="text-xs text-slate-500 font-mono">NMID: ID1025439600251</p>
+      </div>
+      <span class="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">Statik &rarr; Dinamis</span>
+    </div>
+
+    <!-- 1. Elemen Gambar QRIS Statis Lokal (Pastikan file qris.png ada di folder yang sama) -->
+    <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col items-center gap-3">
+      <p class="text-xs font-medium text-slate-500">Sumber QRIS Statis (Otomatis Dibaca)</p>
+      <img id="source-qris-img" src="assets/img/qrispesty.png" alt="QRIS Statis" class="w-32 h-32 object-contain border rounded-lg p-1" crossorigin="anonymous">
+      <p id="status-text" class="text-xs font-semibold text-emerald-600">Memuat QRIS...</p>
+    </div>
+
+    <!-- Form Input Nominal -->
+    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-4">
+      <div>
+        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Masukkan Nominal (Rupiah)</label>
+        <div class="relative">
+          <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-slate-400 font-medium">Rp</span>
+          <input
+            type="number"
+            id="input-amount"
+            placeholder="Contoh: 15000"
+            min="1"
+            autofocus
+            class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 bg-white text-base font-bold text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+          />
+        </div>
+      </div>
+
+      <!-- Quick Amount Buttons -->
+      <div class="grid grid-cols-4 gap-2">
+        <button type="button" class="quick-btn py-2 px-3 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 transition-colors" data-val="10000">Rp 10rb</button>
+        <button type="button" class="quick-btn py-2 px-3 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 transition-colors" data-val="15000">Rp 15rb</button>
+        <button type="button" class="quick-btn py-2 px-3 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 transition-colors" data-val="20000">Rp 20rb</button>
+        <button type="button" class="quick-btn py-2 px-3 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 transition-colors" data-val="25000">Rp 25rb</button>
+      </div>
+    </div>
+
+    <!-- Hasil QRIS Dinamis -->
+    <div id="result-card" class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+      <div class="px-4 py-3 border-b bg-slate-50 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">QRIS Dinamis Siap Scan</h2>
+        </div>
+      </div>
+
+      <div class="p-6 flex flex-col items-center space-y-4">
+        <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-md flex items-center justify-center min-h-[250px] min-w-[250px]">
+          <div id="qrcode-container"></div>
+          <div id="placeholder-qr" class="text-slate-300 text-sm font-medium text-center">Masukkan nominal<br>untuk menampilkan QR</div>
+        </div>
+
+        <div class="text-center space-y-1">
+          <p class="text-sm font-semibold text-slate-600">PEACE TASTY CORNDOG</p>
+          <p id="res-amount" class="text-3xl font-extrabold text-blue-600">Rp 0</p>
+        </div>
+
+        <div class="w-full">
+          <details class="text-xs text-slate-500">
+            <summary class="cursor-pointer font-medium mb-1 hover:text-slate-700">Lihat String QRIS</summary>
+            <div id="res-string" class="bg-slate-50 rounded-xl p-3 border border-slate-200 break-all font-mono text-[11px] text-slate-600 max-h-20 overflow-y-auto"></div>
+          </details>
+        </div>
+
+        <div class="flex gap-3 w-full">
+          <button id="btn-copy" class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-sm font-semibold text-slate-700 shadow-sm transition-all">Copy String</button>
+          <button id="btn-download" class="flex-1 px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-sm transition-all">Download QR</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    let STATIC_QRIS = "";
+
+    // 2. Skrip otomatis membaca gambar QRIS statis menggunakan jsQR saat halaman dimuat
+    window.addEventListener("DOMContentLoaded", () => {
+      const img = document.getElementById("source-qris-img");
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imgData.data, imgData.width, imgData.height);
+        
+        if (code) {
+          STATIC_QRIS = code.data;
+          document.getElementById("status-text").textContent = "QRIS Berhasil Dibaca Otomatis!";
+        } else {
+          document.getElementById("status-text").textContent = "Gagal membaca QRIS, pastikan qris.png jelas.";
+          // Fallback string statis Anda jika pembacaan gagal
+          STATIC_QRIS = "00020101021126650013ID.CO.BCA.WWW011893600014000412868602150008850041286860303UMI51440014ID.CO.QRIS.WWW0215ID10254396002510303UMI5204581253033605802ID5919PEACE TASTY CORNDOG6006SERANG61054211662070703A0163040024";
+        }
+      };
+      if (img.complete) { img.onload(); }
+    });
+
+    function calculateCRC16(str) {
+      let crc = 0xffff;
+      for (let i = 0; i < str.length; i++) {
+        crc ^= str.charCodeAt(i) << 8;
+        for (let j = 0; j < 8; j++) {
+          if (crc & 0x8000) {
+            crc = ((crc << 1) ^ 0x1021) & 0xffff;
+          } else {
+            crc = (crc << 1) & 0xffff;
+          }
+        }
+      }
+      return (crc & 0xffff).toString(16).toUpperCase().padStart(4, "0");
+    }
+
+    const TAG_NAMES = {
+      "00": "Payload", "01": "Method", "52": "MCC", "53": "Currency",
+      "54": "Amount", "58": "Country", "59": "Name", "60": "City", "63": "CRC"
+    };
+
+    const NESTED_TAGS = new Set(Array.from({ length: 26 }, (_, i) => String(i + 26).padStart(2, "0")).concat(["62"]));
+
+    function parseTLV(data) {
+      const elements = [];
+      let pos = 0;
+      while (pos < data.length) {
+        if (pos + 4 > data.length) break;
+        const tag = data.substring(pos, pos + 2);
+        const length = parseInt(data.substring(pos + 2, pos + 4), 10);
+        if (isNaN(length) || pos + 4 + length > data.length) break;
+        const value = data.substring(pos + 4, pos + 4 + length);
+        const element = { tag, length, value };
+        if (NESTED_TAGS.has(tag)) {
+          element.children = parseTLV(value);
+        }
+        elements.push(element);
+        pos += 4 + length;
+      }
+      return elements;
+    }
+
+    function buildTLVString(elements) {
+      return elements.map((el) => {
+        const value = el.children ? buildTLVString(el.children) : el.value;
+        const length = value.length.toString().padStart(2, "0");
+        return el.tag + length + value;
+      }).join("");
+    }
+
+    function makeTLV(tag, value) {
+      return { tag, length: value.length, value };
+    }
+
+    function convertQRIS(qrisString, amount) {
+      const elements = parseTLV(qrisString);
+      const result = [];
+      let amountInserted = false;
+      const managedTags = new Set(["54", "55", "56", "57", "63"]);
+
+      for (const el of elements) {
+        if (managedTags.has(el.tag)) continue;
+        if (el.tag === "01") {
+          result.push(makeTLV("01", "12"));
+          continue;
+        }
+        if (el.tag === "58" && !amountInserted) {
+          result.push(makeTLV("54", amount.toString()));
+          amountInserted = true;
+        }
+        result.push(el);
+      }
+
+      const withoutCRC = buildTLVString(result);
+      const crcInput = withoutCRC + "6304";
+      const crc = calculateCRC16(crcInput);
+      return crcInput + crc;
+    }
+
+    const inputAmount = document.getElementById("input-amount");
+    const qrcodeContainer = document.getElementById("qrcode-container");
+    const placeholderQr = document.getElementById("placeholder-qr");
+    const resAmount = document.getElementById("res-amount");
+    const resString = document.getElementById("res-string");
+
+    let qrCodeObj = null;
+
+    function updateDynamicQR() {
+      const val = parseInt(inputAmount.value, 10);
+      if (isNaN(val) || val <= 0 || !STATIC_QRIS) {
+        qrcodeContainer.innerHTML = "";
+        placeholderQr.style.display = "block";
+        resAmount.textContent = "Rp 0";
+        resString.textContent = "";
+        return;
+      }
+
+      placeholderQr.style.display = "none";
+      const dynamicString = convertQRIS(STATIC_QRIS, val);
+
+      qrcodeContainer.innerHTML = "";
+      qrCodeObj = new QRCode(qrcodeContainer, {
+        text: dynamicString,
+        width: 230,
+        height: 230,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.M
+      });
+
+      resAmount.textContent = "Rp " + val.toLocaleString('id-ID');
+      resString.textContent = dynamicString;
+    }
+
+    inputAmount.addEventListener("input", updateDynamicQR);
+
+    document.querySelectorAll(".quick-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        inputAmount.value = btn.dataset.val;
+        updateDynamicQR();
+      });
+    });
+
+    document.getElementById("btn-copy").addEventListener("click", () => {
+      const str = resString.textContent;
+      if (!str) return;
+      navigator.clipboard.writeText(str);
+      const btn = document.getElementById("btn-copy");
+      btn.textContent = "Copied!";
+      setTimeout(() => btn.textContent = "Copy String", 2000);
+    });
+
+    document.getElementById("btn-download").addEventListener("click", () => {
+      const img = document.querySelector("#qrcode-container img") || document.querySelector("#qrcode-container canvas");
+      if (!img) return;
+      const link = document.createElement("a");
+      link.download = "qris-dinamis-" + inputAmount.value + ".png";
+      if (img.tagName === "CANVAS") {
+        link.href = img.toDataURL("image/png");
+      } else {
+        link.href = img.src;
+      }
+      link.click();
+    });
+  </script>
+</body>
+</html>
